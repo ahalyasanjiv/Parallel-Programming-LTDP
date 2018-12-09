@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "helpers.h"
 
 /* Scoring constants */
 int MATCH = 2;
@@ -9,41 +10,8 @@ int MISMATCH = -1;
 int SPACE = -1;
 
 /* Function Prototypes */
-int max(int a, int b);
-void print_reverse(char* x, int x_len);
-void print_matrix(int m, int n, int A[m][n]);
 void smith_waterman_forward(char* x, char* y, int x_len, int y_len, int score[x_len+1][y_len+1], int pred[x_len+1][y_len+1], int* max_row, int* max_col);
 void smith_waterman_backward(char* x, char* y, int x_len, int y_len, int score[x_len+1][y_len+1], int pred[x_len+1][y_len+1], int* max_row, int* max_col);
-
-/* Finds the max of two integers */
-int max(int a, int b) {
-  if (a > b) {
-    return a;
-  }
-  return b;
-}
-
-/* Prints reverse of string */
-void print_reverse(char* x, int x_len) {
-  char* new_str = malloc(x_len);
-  int i;
-  for (i=0; i<x_len; i++) {
-    new_str[i] = x[x_len-i-1];
-  }
-  new_str[i] = '\0';
-  printf("%s\n", new_str);
-  free(new_str);
-}
-
-/* Prints matrix */
-void print_matrix(int m, int n, int A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%d ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
 
 /* Forward algorithm to complete score matrix and predecessor matrix */
 void smith_waterman_forward(
@@ -144,31 +112,38 @@ void smith_waterman_backward(
     alignment_len++;
 
   }
+  printf("Local alignment for reference: ");
   print_reverse(result_x_alignment,alignment_len);
+  printf("Local alignment for query: ");
   print_reverse(result_y_alignment,alignment_len);
 }
 
-char * generateSequence(
-  int n // the length of the sequence
-) {
-
-}
-
 int main(int argc, const char* argv[]) {
-  char * x = "AGTACAGA";
-  char * y = "ACGCACTA";
-  int x_len = strlen(x);
-  int y_len = strlen(y);
-  int score[x_len+1][y_len+1];
-  int pred[x_len+1][y_len+1];
+  srand(time(NULL));
+  int ref_len,query_len;
+  printf("===========================================================\n"
+         "SMITH WATERMAN SERIAL ALGORITHM\n");
+  printf("Computing the local alignment for two random DNA sequences.\n");
+  printf("===========================================================\n");
+  printf("Enter the string size for the reference string: ");
+  scanf("%d",&ref_len);
+  printf("Enter the string size for the query string: ");
+  scanf("%d",&query_len);
+  char* ref = generateSequence(ref_len);
+  char* query = generateSequence(query_len);
+  printf("Reference string: %s\nQuery string: %s\n",ref,query);
+  int score[ref_len+1][query_len+1];
+  int pred[ref_len+1][query_len+1];
   int max_row;
   int max_col;
   clock_t t;
   t = clock();
-  smith_waterman_forward(x, y, x_len, y_len, score, pred, &max_row, &max_col);
+  smith_waterman_forward(ref, query, ref_len, query_len, score, pred, &max_row, &max_col);
   t = clock() - t;
-  printf("Time: %f\n", (double)t/CLOCKS_PER_SEC);
-  smith_waterman_backward(x, y, x_len, y_len, score, pred, &max_row, &max_col);
-  print_matrix(x_len+1,y_len+1,score);
+  printf("===========================================================\n"
+         "RESULTS\n"
+         "===========================================================\n");
+  printf("Time taken for forward phase: %f seconds\n", (double)t/CLOCKS_PER_SEC);
+  smith_waterman_backward(ref, query, ref_len, query_len, score, pred, &max_row, &max_col);
   return 0;
 }
