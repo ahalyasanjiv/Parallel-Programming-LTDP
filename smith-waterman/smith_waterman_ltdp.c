@@ -5,52 +5,18 @@
 #include <time.h>
 #include <math.h>
 #include <omp.h>
+#include "helpers.h"
 
 int MATCH = 2;
 int MISMATCH = -1;
 int SPACE = -1;
 
-int max(int a, int b);
-void print_matrix(int m, int n, int A[m][n]);
-void print_reverse(char* x, int x_len);
 bool is_parallel( int m, int n, int start_i, int start_j, int new_score[m][n], int score[m][n]);
-int get_start_row( int j, int m );
-int get_start_col( int j, int m );
 void calculate_element(int up, int diagonal, int left, int * score, int * pred);
-int get_num_of_stages(int m, int n);
-int get_num_of_elements_in_stage(int i, int m, int n);
 void forward( char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int *max_score_arr, int *max_row_arr, int *max_col_arr, int block_size, int num_stages, int num_teams, int num_threads );
 void fixup( char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int *max_score_arr, int *max_row_arr, int *max_col_arr, int block_size, int num_stages, int num_teams, int num_threads );
 void backward( char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int max_row, int max_col);
 void smith_waterman(char* x, char* y);
-
-/* Finds the max of two integers */
-int max(int a, int b) {
-  if (a > b) {
-    return a;
-  }
-  return b;
-}
-
-void print_matrix(int m, int n, int A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%d ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-void print_reverse(char* x, int x_len) {
-  char* new_str = malloc(x_len);
-  int i;
-  for (i=0; i<x_len; i++) {
-    new_str[i] = x[x_len-i-1];
-  }
-  new_str[i] = '\0';
-  printf("%s\n", new_str);
-  free(new_str);
-}
 
 bool is_parallel(
   int m,
@@ -61,7 +27,6 @@ bool is_parallel(
   int score[m][n]
 ) {
   bool parallel = true;
-
   for (int i = 0; start_j+i < n-1 && start_i - i > 1; i++) {
     if ((new_score[start_i-i][start_j+i] - score[start_i-i][start_j+i]) != (new_score[start_i-i][start_j+i] - score[start_i-i-1][start_j+i+1])) {
       parallel = false;
@@ -70,46 +35,7 @@ bool is_parallel(
       parallel = true;
     }
   }
-
   return parallel;
-}
-
-int get_start_row(
-  int j,
-  int m
-) {
-  if (j < m - 1){
-    return j+1;
-  }
-  return m - 1;
-}
-
-int get_start_col(
-  int j,
-  int m
-) {
-  if (j < m - 1){
-    return 1;
-  }
-  return j - m + 3;
-}
-
-void copy_new_soln(
-  int m,
-  int n,
-  int start_i,
-  int start_j,
-  int new_score[m][n],
-  int new_pred[m][n],
-  int score[m][n],
-  int pred[m][n]
-) {
-  int i = start_i;
-  for (int j = start_j; j < n && i > 0; j++) {
-    score[i][j] = new_score[i][j];
-    pred[i][j] = new_pred[i][j];
-    i--;
-  }
 }
 
 void calculate_element(int up, int diagonal, int left, int * score, int * pred) {
@@ -126,29 +52,6 @@ void calculate_element(int up, int diagonal, int left, int * score, int * pred) 
   } else {
     *score = up;
     *pred = 3;
-  }
-}
-
-int get_num_of_stages(int m, int n) {
-  return (m-2) + (n-2) + 1;
-}
-
-// Get number of elements in stage based on stage number and lengths of strings
-int get_num_of_elements_in_stage(int i, int m, int n) {
-  int max_dim, min_dim;
-  if (m > n) {
-    max_dim = m;
-    min_dim = n;
-  } else {
-    max_dim = n;
-    min_dim = m;
-  }
-  if (min_dim > i) {
-    return i;
-  } else if (max_dim > i) {
-    return min_dim - 1;
-  } else {
-    return 2 * min_dim - i + (max_dim - min_dim) - 2;
   }
 }
 
@@ -322,10 +225,6 @@ void fixup(
       }
     }
   } while (converged);
-  print_matrix(m,n,score);
-  printf("\n");
-  print_matrix(m,n,new_score);
-
 }
 
 void backward(
@@ -366,7 +265,9 @@ void backward(
     alignment_len++;
 
   }
+  printf("Local alignment for reference: ");
   print_reverse(result_x_alignment,alignment_len);
+  printf("Local alignment for query: ");
   print_reverse(result_y_alignment,alignment_len);
 }
 
@@ -393,10 +294,6 @@ void smith_waterman(char* x, char* y) {
   int num_stages = get_num_of_stages(m,n);
   int block_size = (int)ceil((float)num_stages / num_teams);
   forward(x,y,m,n,score,pred,max_score_arr,max_row_arr,max_col_arr,block_size,num_stages,num_teams,num_threads);
-
-  // rp[tid]nt_matrix(m,n,score);
-  // printf("\n");
-  // print_matrix(m,n,pred);
   fixup(x,y,m,n,score,pred,max_score_arr,max_row_arr,max_col_arr,block_size,num_stages,num_teams-1,num_threads);
   int max_row = 0;
   int max_col = 0;
@@ -407,12 +304,26 @@ void smith_waterman(char* x, char* y) {
       max_col = max_col_arr[i];
     }
   }
+  printf("===========================================================\n"
+         "RESULTS\n"
+         "===========================================================\n");
   backward(x,y,m,n,score,pred,max_row,max_col);
 }
 
 int main() {
-  char * x = "AGTACAGA";
-  char * y = "ACGCACTA";
-  smith_waterman(x,y);
+  srand(time(NULL));
+  int ref_len,query_len;
+  printf("===========================================================\n"
+         "SMITH WATERMAN PARALLEL ALGORITHM\n");
+  printf("Computing the local alignment for two random DNA sequences.\n");
+  printf("===========================================================\n");
+  printf("Enter the string size for the reference string: ");
+  scanf("%d",&ref_len);
+  printf("Enter the string size for the query string: ");
+  scanf("%d",&query_len);
+  char* ref = generateSequence(ref_len);
+  char* query = generateSequence(query_len);
+  printf("Reference string: %s\nQuery string: %s\n",ref,query);
+  smith_waterman(ref,query);
   return 0;
 }
