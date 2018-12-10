@@ -3,134 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "helpers.h"
+
 
 
 /* Scoring constants */
-int MATCH = 3;
-int MISMATCH = -3;
-int SPACE = -2;
+int MATCH = 2;
+int MISMATCH = -1;
+int SPACE = -1;
 
 /* Function Prototypes */
-int get_num_of_elements_in_stage(int i, int x_len, int y_len);
-int max(int a, int b);
-int min(int a, int b);
-void print_reverse(char* x, int x_len);
-void print_matrix(int m, int n, int A[m][n]);
 void smith_waterman_forward(char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int i, int j /*int* max_score, int* stage_max, int* max_row, int* max_col */ );
 void smith_waterman_backward(char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int* max_row, int* max_col);
-
-
-int main() {
-  char * x = "GGTTGACTAGCTCTGAGCGAGCTAGCACCGTAACGTCACTGACGGTTGACTAGCTCTGAGCGAGCTAGCACCGTAACGTCACTGAC";
-  char * y = "TGTTACGGACTGCAGCTCTGAGCGAGCTAGCACCTCAGCAGCATGTTACGGACTGCAGCTCTGAGCGAGCTAGCACCTCAGCAGCA";
-  int x_len = strlen(x);
-  int m = strlen(x)+1;
-  int n = strlen(y)+1;
-  int score[m][n];
-  int pred[m][n];
-  // int stage_max = 0;
-  int max_score = 0;
-  int max_row, max_col;
-  int num_of_stages = (m-2) + (n-2) + 1;
-  int start_i, start_j, curr_i, curr_j;
-  int i, j;
-  int num_of_elements_in_stage;
-
-  // Initialize the first row and first column of matrix to 0
-  for (i=0; i<m; i++) {
-    for (j=0; j<n; j++) {
-      score[i][j]=0;
-      pred[i][j]=0;
-    }
-  }
-  #pragma omp parallel num_threads(1) \
-  default(none) shared(x, y, score, pred, m, n, max_row, max_col, num_of_stages) private(num_of_elements_in_stage, i, j, start_i, start_j, curr_i, curr_j)
-  {
-    clock_t t;
-    t = clock();
-    for (i = 0; i < num_of_stages; i++) {
-      num_of_elements_in_stage = get_num_of_elements_in_stage(i, m, n);
-      if (i < m - 1){
-        start_i = i+1;
-        start_j = 1;
-      } else {
-        start_i = m - 1;
-        start_j = i - m + 3;
-      }
-      #pragma omp parallel for
-      for (j = 0; j < num_of_elements_in_stage; j++) {
-        curr_i = start_i-j;
-        curr_j = start_j+j;
-        smith_waterman_forward(x, y, m, n, score, pred, curr_i, curr_j);
-      }
-    }
-    t = clock() - t;
-    printf("Time: %f\n", (double)t/CLOCKS_PER_SEC);
-  }
-  for (i=0; i<m; i++) {
-    for (j=0; j<n; j++) {
-      if (score[i][j] > max_score) {
-        max_score = score[i][j];
-        max_row = i;
-        max_col = j;
-      }
-    }
-  }
-  smith_waterman_backward(x, y, m, n, score, pred, &max_row, &max_col);
-
-  return 0;
-}
-
-// Get number of elements in stage based on stage number and lengths of strings
-int get_num_of_elements_in_stage(int i, int x_len, int y_len) {
-  int max_dim = max(x_len, y_len);
-  int min_dim = min(x_len, y_len);
-  if (min_dim > i) {
-    return i;
-  } else if (max_dim > i) {
-    return min_dim - 1;
-  } else {
-    return 2*min_dim-i+(max_dim-min_dim)-2;
-  }
-}
-
-/* Finds the max of two integers */
-int max(int a, int b) {
-  if (a > b) {
-    return a;
-  }
-  return b;
-}
-
-/* Find the min of two integers */
-int min(int a, int b) {
-  if (a < b) {
-    return a;
-  }
-  return b;
-}
-
-/* Prints reverse of string */
-void print_reverse(char* x, int x_len) {
-  char* new_str = malloc(x_len);
-  int i;
-  for (i=0; i<x_len; i++) {
-    new_str[i] = x[x_len-i-1];
-  }
-  new_str[i] = '\0';
-  printf("%s\n", new_str);
-  free(new_str);
-}
-
-/* Prints matrix */
-void print_matrix(int m, int n, int A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%d ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
 
 /* Forward algorithm to complete score matrix and predecessor matrix */
 void smith_waterman_forward(
@@ -208,6 +92,77 @@ void smith_waterman_backward(
     alignment_len++;
 
   }
+  printf("Local alignment for reference: ");
   print_reverse(result_x_alignment,alignment_len);
+  printf("Local alignment for query: ");
   print_reverse(result_y_alignment,alignment_len);
+}
+
+int main() {
+  srand(time(NULL));
+  int ref_len,query_len;
+  printf("===========================================================\n"
+         "SMITH WATERMAN SERIAL ALGORITHM\n");
+  printf("Computing the local alignment for two random DNA sequences.\n");
+  printf("===========================================================\n");
+  printf("Enter the string size for the reference string: ");
+  scanf("%d",&ref_len);
+  printf("Enter the string size for the query string: ");
+  scanf("%d",&query_len);
+  char* ref = generateSequence(ref_len);
+  char* query =
+  generateSequence(query_len);
+  printf("Reference string: %s\nQuery string: %s\n",ref,query);
+
+  int m = ref_len+1;
+  int n = query_len+1;
+  int score[m][n];
+  int pred[m][n];
+  // int stage_max = 0;
+  int max_score = 0;
+  int max_row, max_col;
+  int num_of_stages = m+n-3;
+  int start_i, start_j, curr_i, curr_j;
+  int i, j;
+  int num_of_elements_in_stage;
+
+  // Initialize the first row and first column of matrix to 0
+  for (i=0; i<m; i++) {
+    for (j=0; j<n; j++) {
+      score[i][j]=0;
+      pred[i][j]=0;
+    }
+  }
+  clock_t t;
+  t = clock();
+  for (i = 0; i < num_of_stages; i++) {
+    num_of_elements_in_stage = get_num_of_elements_in_stage(i, m-1, n-1);
+    if (i < m - 1){
+      start_i = i+1;
+      start_j = 1;
+    } else {
+      start_i = m - 1;
+      start_j = i - m + 3;
+    }
+    #pragma omp parallel for num_threads(4)
+    for (j = 0; j < num_of_elements_in_stage; j++) {
+      curr_i = start_i-j;
+      curr_j = start_j+j;
+      smith_waterman_forward(ref, query, m, n, score, pred, curr_i, curr_j);
+    }
+  }
+  t = clock() - t;
+  printf("Time taken for forward phase: %f seconds\n", (double)t/CLOCKS_PER_SEC);
+  for (i=0; i<m; i++) {
+    for (j=0; j<n; j++) {
+      if (score[i][j] > max_score) {
+        max_score = score[i][j];
+        max_row = i;
+        max_col = j;
+      }
+    }
+  }
+  smith_waterman_backward(ref, query, m, n, score, pred, &max_row, &max_col);
+
+  return 0;
 }
