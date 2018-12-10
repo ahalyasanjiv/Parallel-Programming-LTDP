@@ -404,8 +404,8 @@ int main() {
   scanf("%d",&ref_len);
   printf("Enter the string size for the query string: ");
   scanf("%d",&query_len);
-  char* ref = generateSequence(ref_len);
-  char* query = generateSequence(query_len);
+  char* ref = generate_sequence(ref_len);
+  char* query = generate_sequence(query_len);
   printf("Reference string: %s\nQuery string: %s\n",ref,query);
   smith_waterman(ref,query);
   return 0;

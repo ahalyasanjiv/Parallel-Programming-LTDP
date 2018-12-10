@@ -159,8 +159,8 @@ int main(int argc, const char* argv[]) {
   scanf("%d",&query_len);
   ref_len = 15;
   query_len = 15;
-  char* ref = generateSequence(ref_len);
-  char* query = generateSequence(query_len);
+  char* ref = generate_sequence(ref_len);
+  char* query = generate_sequence(query_len);
   printf("Reference string: %s\nQuery string: %s\n",ref,query);
   int score[ref_len+1][query_len+1];
   int pred[ref_len+1][query_len+1];

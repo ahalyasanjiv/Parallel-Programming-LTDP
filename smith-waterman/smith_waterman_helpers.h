@@ -7,7 +7,7 @@ int max(int a, int b);
 int min(int a, int b);
 void print_reverse(char* x, int x_len);
 void print_matrix(int m, int n, int A[m][n]);
-char* generateSequence(int n);
+char* generate_sequence(int n);
 int get_num_of_elements_in_stage(int i, int x_len, int y_len);
 int get_num_of_stages(int m, int n);
 int get_start_row(int j,int m);
