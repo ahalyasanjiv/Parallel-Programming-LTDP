@@ -71,6 +71,7 @@ void smith_waterman_forward(
       }
     }
   }
+  print_matrix(x_len+1,y_len+1,score);
 }
 
 /* Traces back in pred matrix to get the best local alignment */
@@ -129,6 +130,8 @@ int main(int argc, const char* argv[]) {
   scanf("%d",&ref_len);
   printf("Enter the string size for the query string: ");
   scanf("%d",&query_len);
+  ref_len = 15;
+  query_len = 15;
   char* ref = generateSequence(ref_len);
   char* query = generateSequence(query_len);
   printf("Reference string: %s\nQuery string: %s\n",ref,query);
