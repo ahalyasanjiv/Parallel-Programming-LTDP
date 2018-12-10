@@ -86,7 +86,7 @@ void print_matrix(int m, int n, int A[m][n]) {
 }
 
 /*
- * Function: generateSequence
+ * Function: generate_sequence
  * --------------------
  *  Randomly generates a DNA sequence of length n
  *
