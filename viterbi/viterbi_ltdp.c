@@ -8,6 +8,7 @@
 #include "hmm_data_gen.h"
 #include "viterbi_helpers.h"
 
+
 void viterbi(int n, int q, int t, int O[n], int S[q],float I[q], int Y[t], float A[q][q], float B[q][n]);
 void fix_stage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][t], int Y[t], float A[q][q], float B[q][n]);
 void copy_new_stage_to_old(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]);
@@ -35,11 +36,11 @@ void viterbi(
   int q,
   int t,
   int O[n],
-  int S[k],
-  float I[k],
+  int S[q],
+  float I[q],
   int Y[t],
-  float A[k][k],
-  float B[k][n]
+  float A[q][q],
+  float B[q][n]
 ) {
   int p = 4;
   float dp1[q][t]; // dp1[i,j] is the prob of most likely path of length j ending in S[i] resulting in the obs sequence
@@ -63,53 +64,42 @@ void viterbi(
       }
     }
   }
-  int max_count = p;
-  int threads_present = 0;
   // Forward Phase
-  #pragma omp parallel
+  omp_set_num_threads(4);
+  int max_threads = omp_get_max_threads();
+  int num_stages = t;
+  int block_size = (int)ceil((float)num_stages / num_stages);
+#pragma omp parallel num_threads(max_threads)
   {
-  omp_set_nested(1);
-  #pragma omp for schedule(static)
-  for (int i=0; i<p; i++) {
-    int lp = segment_size * i;
-    if (i == 0) {
-      lp = 1;
-    }
-    int rp = segment_size * (i+1) - 1;
-    if (i == p - 1) {
-      rp = t - 1;
-    }
+    int tid = omp_get_thread_num();
+    int lp = (tid * block_size) + 1;
+    int rp = lp + block_size;
     // for each stage that processor i is responsible for
-    double t1, t2;
-    t1 = omp_get_wtime();
+#pragma omp barrier
     for (int j = lp; j <= rp; j++) {
-      for (int k = 0; k < q; k++) {
-        float max = -INFINITY;
-        int arg_max = -1;
-        double curr_log_prob, sub_prob;
-        for (int l = 0; l < q; l++) {
-          sub_prob = dp1[l][j-1];
-          threads_present++;
-          while (threads_present < max_count) {}
-          threads_present--;
-          curr_log_prob = sub_prob + A[l][k] + B[k][Y[j]];
-          // // Update max and curr_max if needed
-          if (curr_log_prob > max) {
-            max = curr_log_prob;
-            arg_max = l;
+#pragma omp barrier
+      if (j < t) {
+        for (int k = 0; k < q; k++) {
+          float max = -INFINITY;
+          int arg_max = -1;
+          double curr_log_prob, sub_prob;
+          for (int l = 0; l < q; l++) {
+            sub_prob = dp1[l][j-1];
+            curr_log_prob = sub_prob + A[l][k] + B[k][Y[j]];
+            // // Update max and curr_max if needed
+            if (curr_log_prob > max) {
+              max = curr_log_prob;
+              arg_max = l;
+            }
           }
+          // Update dp memos
+          dp1[k][j] = max;
+          dp2[k][j] = arg_max;
         }
-        // Update dp memos
-        dp1[k][j] = max;
-        dp2[k][j] = arg_max;
-      }
-      if (j == rp) {
-        max_count -= 1;
       }
     }
-    printf("time: %f\n", omp_get_wtime()-t1);
   }
-  }
+
 
   // Fixup Phase
   bool converged = false;
@@ -132,7 +122,7 @@ void viterbi(
       int s2[q];  // holds new soln (corresponding to dp2)
       for (int j=lp; j<=rp; j++) {
         // Fix stage j using actual solution to stage j-1
-        fixStage(n,j,q,t,s1,s2,dp1,Y,A,B);
+        fix_stage(n,j,q,t,s1,s2,dp1,Y,A,B);
         // If new solution and old solution are parallel, break
         parallel = is_parallel(q,t,j,s1,dp1);
         if (parallel) {
@@ -171,6 +161,13 @@ void viterbi(
     arg_max = dp2[arg_max][i];
     X[i-1] = S[arg_max];
   }
+  printf("===========================================================\n"
+         "RESULTS\n"
+         "===========================================================\n");
+  printf("Observation sequence:\n");
+  print_arr(t,Y);
+  printf("Most probable state sequence:\n");
+  print_arr(t,X);
 
 }
 
@@ -252,23 +249,19 @@ bool is_parallel(int q, int t, int comp_stage_idx, float s[q], float dp[q][t]) {
 }
 
 int main() {
-  // O[0:happy, 1:grumpy]
-  // S[0:sunny, 1:rainy]
-  // const int t = 6;
-  // int n = 2;
-  // int q = 2;
-  // int t = 8;
-  // int O[] = {0,1};
-  // int S[] = {0,1};
-  // float I[2] = {log(0.67), log(0.33)};
-  // float A[2][2] = {{0.8,0.2},{0.4,0.6}};
-  // float B[2][2] = {{0.8,0.2},{0.4,0.6}};
-  // convert_to_log_prob(2,2,A);
-  // convert_to_log_prob(2,2,B);
-  // int Y[8] = {0,0,1,1,1,0,1,0};
-  int n = 100;
-  int q = 100;
-  int t = 100;
+  int n,q,t;
+  printf("===========================================================\n"
+         "VITERBI LTDP PARALLEL ALGORITHM\n");
+  printf("Computing the most probable state sequence from a sequence of observations.\n");
+  printf("This program will generate the observation sequence and HMM based on the\n"
+          "dimensions you specify.");
+  printf("===========================================================\n");
+  printf("Enter the size of the observation space: ");
+  scanf("%d",&n);
+  printf("Enter the size of the state space: ");
+  scanf("%d",&q);
+  printf("Enter the number of observations in the sequence: ");
+  scanf("%d",&t);
   int O[n];
   int S[q];
   int Y[t];
@@ -279,30 +272,6 @@ int main() {
   convert_to_log_prob(2,2,A);
   convert_to_log_prob(2,2,B);
   generate_sequence(q,n,t,O,S,Y,I,A,B);
-
-  // int O[n];
-  // int S[q];
-  // float I[n];
-  // float A[q][q];
-  // float B[q][n];
-  // int Y[t];
-  //
-  // for (int i = 0; i < q; i++) {
-  //   float max_prob = 1.0;
-  //   for (int j = 0; j < q; j++) {
-  //     A[i][j] = get_rand_float(0.0,max_prob);
-  //     max_prob = max_prob - A[i][j];
-  //   }
-  // }
-  //
-  // for (int i = 0; i < q; i++) {
-  //   float max_prob = 1.0;
-  //   for (int j = 0; j < n; j++) {
-  //     B[i][j] = get_rand_float(0.0,max_prob);
-  //     max_prob = max_prob - B[i][j];
-  //   }
-  // }
-
   viterbi(n,q,t,O,S,I,Y,A,B);
   return 0;
 }
