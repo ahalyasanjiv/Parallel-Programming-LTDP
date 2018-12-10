@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "hmm_data_gen.h"
 #include "viterbi_helpers.h"
 
 void viterbi( int n, int k, int t, int O[n], int S[k], float I[k], int Y[t], float A[k][k], float B[k][n]);
@@ -34,9 +35,11 @@ void viterbi(
   float A[k][k],
   float B[k][n]
 ) {
+  // dp1[i,j] is the prob of most likely path of length j ending in S[i] resulting in the obs sequence
+  float dp1[k][t];
+  // dp2[i,j] stores predecessor state of the most likely path of length j ending in S[i] resulting in the obs sequence
+  int dp2[k][t];
   // Initialize DP matrices
-  float dp1[k][t]; // dp1[i,j] is the prob of most likely path of length j ending in S[i] resulting in the obs sequence
-  int dp2[k][t]; // dp2[i,j] stores predecessor state of the most likely path of length j ending in S[i] resulting in the obs sequence
   for (int i=0; i<k; i++) {
     for (int j=0; j<t; j++) {
       if (j==0) {
@@ -62,9 +65,6 @@ void viterbi(
       double curr_prob;
       // Second inner loop is iterating though possible states that could have preceded state S[j]
       for (int q=0; q<k; q++) {
-        // dp1[q,i-1] - prob of most likely path from prev stage ending in S[q]
-        // A[q,j] - prob of going from state S[q] to S[j]
-        // B[j,Y[i]] - prob of observing O[Y[i]] state S[j]
         curr_prob = dp1[q][i-1] + A[q][j] + B[j][Y[i]];
         // Update max and curr_max if needed
         if (curr_prob > max) {
@@ -98,22 +98,36 @@ void viterbi(
     X[i-1] = S[arg_max];
   }
 
-  print_arr(8,X);
-  print_fl_matrix(k,t,dp1);
-  print_matrix(k,t,dp2);
-  return;
+  printf("===========================================================\n"
+         "RESULTS\n"
+         "===========================================================\n");
+  printf("Observation sequence:\n");
+  print_arr(t,Y);
+  printf("Most probable state sequence:\n");
+  print_arr(t,X);
 }
 
 int main() {
-  // O[0:happy, 1:grumpy]
-  // S[0:sunny, 1:rainy]
-  // const int t = 6;
-  int O[] = {0,1};
-  int S[] = {0,1};
-  float I[2] = {log(0.67), log(0.33)};
-  float A[2][2] = {{log(0.8),log(0.2)},{log(0.4),log(0.6)}};
-  float B[2][2] = {{log(0.8),log(0.2)},{log(0.4),log(0.6)}};
-  int Y[8] = {0,0,1,1,1,0,1,0};
-  viterbi(2,2,8,O,S,I,Y,A,B);
+  int n,k,t;
+  printf("===========================================================\n"
+         "VITERBI LTDP PARALLEL ALGORITHM\n");
+  printf("Computing the most probable state sequence from a sequence of observations.\n");
+  printf("This program will generate the observation sequence and HMM based on the\n"
+          "dimensions you specify.");
+  printf("===========================================================\n");
+  printf("Enter the size of the observation space: ");
+  scanf("%d",&n);
+  printf("Enter the size of the state space: ");
+  scanf("%d",&k);
+  printf("Enter the number of observations in the sequence: ");
+  scanf("%d",&t);
+  int O[n];
+  int S[k];
+  int Y[t];
+  float I[k];
+  float A[k][k];
+  float B[k][n];
+  generate_sequence(k,n,t,O,S,Y,I,A,B);
+  viterbi(n,k,t,O,S,I,Y,A,B);
   return 0;
 }
