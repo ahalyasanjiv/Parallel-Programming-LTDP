@@ -30,8 +30,6 @@ iterating through each element in a row before moving onto the next.
 Run the following commands:
 ```
 gcc-8 -fopenmp smith_waterman_serial.c -o sw
-```
-```
 ./sw
 ```
 
@@ -43,8 +41,6 @@ but the elements within the stage are computed in parallel.
 Run the following commands:
 ```
 gcc-8 -fopenmp smith_waterman_par.c -o sw
-```
-```
 ./sw
 ```
 #### LTDP Parallel Version
@@ -55,7 +51,5 @@ stage are computed in parallel (fine-grained and coarse-grained parallelism).
 Run the following commands:
 ```
 gcc-8 -fopenmp smith_waterman_ltdp.c -o sw
-```
-```
 ./sw
 ```
