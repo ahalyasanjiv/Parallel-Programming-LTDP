@@ -110,7 +110,7 @@ void viterbi(
 int main() {
   int n,k,t;
   printf("===========================================================\n"
-         "VITERBI LTDP PARALLEL ALGORITHM\n");
+         "VITERBI SERIAL ALGORITHM\n");
   printf("Computing the most probable state sequence from a sequence of observations.\n");
   printf("This program will generate the observation sequence and HMM based on the\n"
           "dimensions you specify.");
