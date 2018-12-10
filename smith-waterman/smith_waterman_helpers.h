@@ -94,7 +94,7 @@ void print_matrix(int m, int n, int A[m][n]) {
  *
  *  returns: randomly generated DNA sequence of length n
  */
-char* generateSequence(
+char* generate_sequence(
   int n
 ) {
   char* seq = malloc(sizeof(char) * (n+1));;
