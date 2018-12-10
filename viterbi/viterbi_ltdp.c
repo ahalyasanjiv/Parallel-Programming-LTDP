@@ -6,33 +6,12 @@
 #include <math.h>
 #include <omp.h>
 #include "hmm_data_gen.h"
+#include "viterbi_helpers.h"
 
-/* Function Prototypes */
-int max(int a, int b);
-float getRandFloat(float min, float max);
 void viterbi(int n, int q, int t, int O[n], int S[q],float I[q], int Y[t], float A[q][q], float B[q][n]);
-void print_arr(int t, int X[t]);
-void print_fl_arr(int t, float X[t]);
-void print_fl_matrix(int m, int n, float A[m][n]);
-void print_matrix(int m, int n, int A[m][n]);
 void fixStage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][t], int Y[t], float A[q][q], float B[q][n]);
 void copyNewStageToOld(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]);
-void convertToLogProb(int m, int n, float matrix[m][n]);
-void convertArrayToLogProb(int n, float arr[n]);
 bool is_parallel(int q, int t, int comp_stage_idx, float s[q], float dp1[q][t]);
-
-/* Finds the max of two integers */
-int max(int a, int b) {
-  if (a > b) {
-    return a;
-  }
-  return b;
-}
-
-/* Random float between min and max */
-float getRandFloat(float min, float max) {
-    return  (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min ;
-}
 
 /* Returns the most likely hidden state sequence corresponding to given observations Y */
 void viterbi(
@@ -217,56 +196,6 @@ bool is_parallel(int q, int t, int comp_stage_idx, float s[q], float dp[q][t]) {
     }
   }
   return true;
-}
-
-/* Prints int array */
-void print_arr(int t, int X[t]) {
-  for (int i=0; i<t; i++) {
-    printf("%d ", X[i]);
-  }
-  printf("\n");
-}
-
-/* Prints float array */
-void print_fl_arr(int t, float X[t]) {
-  for (int i=0; i<t; i++) {
-    printf("%f ", X[i]);
-  }
-  printf("\n");
-}
-
-/* Prints matrix */
-void print_fl_matrix(int m, int n, float A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%f ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* Prints matrix */
-void print_matrix(int m, int n, int A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%d ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-void convertToLogProb(int m, int n, float matrix[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      matrix[i][j] = (float)log(matrix[i][j]);
-    }
-  }
-}
-
-void convertArrayToLogProb(int n, float arr[n]) {
-  for (int i = 0; i < n; i++) {
-    arr[i] = (float)log(arr[i]);
-  }
 }
 
 int main() {

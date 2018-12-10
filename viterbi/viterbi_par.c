@@ -3,23 +3,9 @@
 #include <string.h>
 #include <time.h>
 #include <omp.h>
+#include "viterbi_helpers.h"
 
-use omp_lib
-
-/* Function Prototypes */
-int max(int a, int b);
 void viterbi( int n, int k, int t, int O[n], int S[k], float I[k], int Y[t], float A[k][k], float B[k][n]);
-void print_arr(int t, int X[t]);
-void print_fl_matrix(int m, int n, float A[m][n]);
-void print_matrix(int m, int n, int A[m][n]);
-
-/* Finds the max of two integers */
-int max(int a, int b) {
-  if (a > b) {
-    return a;
-  }
-  return b;
-}
 
 /* Returns the most likely hidden state sequence corresponding to given observations Y */
 void viterbi(
@@ -81,7 +67,7 @@ void viterbi(
         dp2[j][i] = arg_max;
       }
       end = omp_get_wtime();
-      printf_s("Work took %f sec. time.\n", end-start);
+      printf("Work took %f sec. time.\n", end-start);
     }
   }
 
@@ -105,33 +91,6 @@ void viterbi(
   }
 
   print_arr(6,X);
-}
-
-void print_arr(int t, int X[t]) {
-  for (int i=0; i<t; i++) {
-    printf("%d ", X[i]);
-  }
-  printf("\n");
-}
-
-/* Prints matrix */
-void print_fl_matrix(int m, int n, float A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%f ", A[i][j]);
-    }
-    printf("\n");
-  }
-}
-
-/* Prints matrix */
-void print_matrix(int m, int n, int A[m][n]) {
-  for (int i=0; i<m; i++) {
-    for (int j=0; j<n; j++) {
-      printf("%d ", A[i][j]);
-    }
-    printf("\n");
-  }
 }
 
 int main() {
