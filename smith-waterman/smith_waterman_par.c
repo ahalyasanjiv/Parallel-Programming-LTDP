@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "helpers.h"
+#include "smith_waterman_helpers.h"
 
 /* Scoring constants */
 int MATCH = 2;

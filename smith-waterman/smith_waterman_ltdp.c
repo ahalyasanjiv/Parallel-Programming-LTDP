@@ -5,7 +5,7 @@
 #include <time.h>
 #include <math.h>
 #include <omp.h>
-#include "helpers.h"
+#include "smith_waterman_helpers.h"
 
 int MATCH = 2;
 int MISMATCH = -1;
