@@ -110,8 +110,7 @@ int main() {
   printf("Enter the string size for the query string: ");
   scanf("%d",&query_len);
   char* ref = generateSequence(ref_len);
-  char* query =
-  generateSequence(query_len);
+  char* query = generateSequence(query_len);
   printf("Reference string: %s\nQuery string: %s\n",ref,query);
 
   int m = ref_len+1;
