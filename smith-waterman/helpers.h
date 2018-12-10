@@ -14,7 +14,16 @@ int get_start_row(int j,int m);
 int get_start_col(int j,int m);
 void copy_new_soln(int m, int n, int start_i, int start_j, int new_score[m][n], int new_pred[m][n], int score[m][n], int pred[m][n]);
 
-/* Finds the max of two integers */
+/*
+ * Function: max
+ * --------------------
+ *  Returns max of two integers
+ *
+ *  a: first integer
+ *  b: second integer
+ *
+ *  returns: the larger of a and b
+ */
 int max(int a, int b) {
   if (a > b) {
     return a;
@@ -22,6 +31,16 @@ int max(int a, int b) {
   return b;
 }
 
+/*
+ * Function: min
+ * --------------------
+ *  Returns min of two integers
+ *
+ *  a: first integer
+ *  b: second integer
+ *
+ *  returns: the smaller of a and b
+ */
 int min(int a, int b) {
   if (a < b) {
     return a;
@@ -29,7 +48,14 @@ int min(int a, int b) {
   return b;
 }
 
-/* Prints reverse of string */
+/*
+ * Function: print_reverse
+ * --------------------
+ *  Prints reverse of string
+ *
+ *  x: string to print in reverse
+ *  x_len: length of x
+ */
 void print_reverse(char* x, int x_len) {
   char* new_str = malloc(x_len);
   int i;
@@ -41,7 +67,15 @@ void print_reverse(char* x, int x_len) {
   free(new_str);
 }
 
-/* Prints matrix */
+/*
+ * Function: print_reverse
+ * --------------------
+ *  Prints matrix
+ *
+ *  m: num of rows in A
+ *  n: num of cols in A
+ *  A: matrix to print
+ */
 void print_matrix(int m, int n, int A[m][n]) {
   for (int i=0; i<m; i++) {
     for (int j=0; j<n; j++) {
@@ -51,6 +85,15 @@ void print_matrix(int m, int n, int A[m][n]) {
   }
 }
 
+/*
+ * Function: generateSequence
+ * --------------------
+ *  Randomly generates a DNA sequence of length n
+ *
+ *  n: length of
+ *
+ *  returns: randomly generated DNA sequence of length n
+ */
 char* generateSequence(
   int n
 ) {
@@ -63,7 +106,19 @@ char* generateSequence(
   return seq;
 }
 
-// Get number of elements in stage based on stage number and lengths of strings
+//
+
+/*
+ * Function: get_num_of_elements_in_stage
+ * --------------------
+ *  Get number of elements in stage based on stage number and lengths of strings
+ *
+ *  i: the stage index
+ *  x_len: length of first string x
+ *  y_len: length of second string y
+ *
+ *  returns: number of elements in stage i
+ */
 int get_num_of_elements_in_stage(int i, int x_len, int y_len) {
   int max_dim, min_dim;
   if (x_len > y_len) {
@@ -82,10 +137,30 @@ int get_num_of_elements_in_stage(int i, int x_len, int y_len) {
   }
 }
 
+/*
+ * Function: get_num_of_stages
+ * --------------------
+ *  Get number of stages in a matrix
+ *
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *
+ *  returns: number of stages in a m by n matrix
+ */
 int get_num_of_stages(int m, int n) {
   return (m-2) + (n-2) + 1;
 }
 
+/*
+ * Function: get_start_row
+ * --------------------
+ *  Get start row index for a stage
+ *
+ *  j: stage index
+ *  m: num of rows in matrix
+ *
+ *  returns: start row index for stage j
+ */
 int get_start_row(
   int j,
   int m
@@ -96,6 +171,16 @@ int get_start_row(
   return m - 1;
 }
 
+/*
+ * Function: get_start_col
+ * --------------------
+ *  Get start col index for a stage
+ *
+ *  j: stage index
+ *  m: num of rows in matrix
+ *
+ *  returns: start col index for stage j
+ */
 int get_start_col(
   int j,
   int m
@@ -106,6 +191,20 @@ int get_start_col(
   return j - m + 3;
 }
 
+/*
+ * Function: copy_new_soln
+ * --------------------
+ *  Copies a new solution vectors to an old solution vector in score and pred
+ *
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  start_i: starting row index of solution vector
+ *  start_j: starting col index of solution vector
+ *  new_score: score matrix with new solution vector
+ *  new_pred: predecessor matrix with new solution vector
+ *  score: score matrix with old solution vector
+ *  pred: predecessor matrix with old solution vector
+ */
 void copy_new_soln(
   int m,
   int n,

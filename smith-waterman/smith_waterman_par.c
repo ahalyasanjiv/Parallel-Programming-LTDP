@@ -14,16 +14,29 @@ int SPACE = -1;
 void smith_waterman_forward(char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int i, int j /*int* max_score, int* stage_max, int* max_row, int* max_col */ );
 void smith_waterman_backward(char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int* max_row, int* max_col);
 
-/* Forward algorithm to complete score matrix and predecessor matrix */
+/*
+ * Function: smith_waterman_forward
+ * --------------------
+ *  Forward algorithm to complete score matrix and predecessor matrix.
+ *
+ *  x: first string
+ *  y: second string
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  i: row index
+ *  j: col index
+ */
 void smith_waterman_forward(
   char* x, // first string
   char* y, // second string
-  int m, // num of rows in matrix
-  int n, // num of cols in matrix
+  int m, //
+  int n, //
   int score[m][n], // score matrix
   int pred[m][n], // predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
-  int i, // current row index
-  int j // current col index
+  int i, //
+  int j //
 ) {
   int diagonal, left, up;
 
@@ -51,7 +64,20 @@ void smith_waterman_forward(
   }
 }
 
-/* Traces back in pred matrix to get the best local alignment */
+/*
+ * Function: smith_waterman_backward
+ * --------------------
+ *  Traces back in pred matrix to get the best local alignment
+ *
+ *  x: first string
+ *  y: second string
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  i: row index
+ *  j: col index
+ */
 void smith_waterman_backward(
   char* x, // first string
   char* y, // second string

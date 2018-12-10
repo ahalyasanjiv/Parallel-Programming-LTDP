@@ -13,16 +13,30 @@ int SPACE = -1;
 void smith_waterman_forward(char* x, char* y, int x_len, int y_len, int score[x_len+1][y_len+1], int pred[x_len+1][y_len+1], int* max_row, int* max_col);
 void smith_waterman_backward(char* x, char* y, int x_len, int y_len, int score[x_len+1][y_len+1], int pred[x_len+1][y_len+1], int* max_row, int* max_col);
 
-/* Forward algorithm to complete score matrix and predecessor matrix */
+/*
+ * Function: smith_waterman_forward
+ * --------------------
+ *  Completes the forward phase of the Smith Waterman by completing
+ *  the score matrix and predecessor matrix.
+ *
+ *  x: first string
+ *  y: second string
+ *  x_len: first string length
+ *  y_len: second string length
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  max_row: index of row with max score
+ *  max_col: index of column with max score
+ */
 void smith_waterman_forward(
-  char* x, // first string
-  char* y, // second string
-  int x_len, // first string length
-  int y_len, // second string length
-  int score[x_len+1][y_len+1], // score matrix
-  int pred[x_len+1][y_len+1], // predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
-  int* max_row, // index of row with max score
-  int* max_col // index of column with max score
+  char* x,
+  char* y,
+  int x_len,
+  int y_len,
+  int score[x_len+1][y_len+1],
+  int pred[x_len+1][y_len+1],
+  int* max_row,
+  int* max_col
 ) {
   int i,j;
   int diagonal, left, up;
@@ -74,16 +88,29 @@ void smith_waterman_forward(
   print_matrix(x_len+1,y_len+1,score);
 }
 
-/* Traces back in pred matrix to get the best local alignment */
+/*
+ * Function: smith_waterman_backward
+ * --------------------
+ *  Traces back pred matrix to get the best local alignment for x and y.
+ *
+ *  x: first string
+ *  y: second string
+ *  x_len: first string length
+ *  y_len: second string length
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  max_row: index of row with max score
+ *  max_col: index of column with max score
+ */
 void smith_waterman_backward(
-  char* x, // first string
-  char* y, // second string
-  int x_len, // first string length
-  int y_len, // second string length
-  int score[x_len+1][y_len+1], // score matrix
-  int pred[x_len+1][y_len+1], // predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
-  int* max_row, // index of row with max score
-  int* max_col // index of column with max score
+  char* x,
+  char* y,
+  int x_len,
+  int y_len,
+  int score[x_len+1][y_len+1],
+  int pred[x_len+1][y_len+1],
+  int* max_row,
+  int* max_col
 ) {
   int alignment_len = 0;
   int i = *max_row;

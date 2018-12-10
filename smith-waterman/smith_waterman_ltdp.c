@@ -18,14 +18,26 @@ void fixup( char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int
 void backward( char* x, char* y, int m, int n, int score[m][n], int pred[m][n], int max_row, int max_col);
 void smith_waterman(char* x, char* y);
 
-bool is_parallel(
-  int m,
-  int n,
-  int start_i,
-  int start_j,
-  int new_score[m][n],
-  int score[m][n]
-) {
+/*
+ * Function: is_parallel
+ * --------------------
+ *  Compares old and new solution vectors from score and new_score to see
+ *  if they are parallel.
+ *  Parallel in this context refers to whether the two vectors differ by
+ *  a constant offset.
+ *  Example of parallel vectors: [8,5,9,4] and [6,3,7,2] (diff is [2,2,2,2])
+ *
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  start_i: starting row index of solution vector
+ *  start_j: starting col index of solution vector
+ *  new_score: score matrix with new solution vector
+ *  score: score matrix with old solution vector
+ *
+ *  returns: True if the solution vector starting at [start_i, start_j] in new_score
+ *  is parallel to the corresponding solution vector in score, false otherwise.
+ */
+bool is_parallel(int m, int n, int start_i, int start_j, int new_score[m][n], int score[m][n]) {
   bool parallel = true;
   for (int i = 0; start_j+i < n-1 && start_i - i > 1; i++) {
     if ((new_score[start_i-i][start_j+i] - score[start_i-i][start_j+i]) != (new_score[start_i-i][start_j+i] - score[start_i-i-1][start_j+i+1])) {
@@ -38,6 +50,17 @@ bool is_parallel(
   return parallel;
 }
 
+/*
+ * Function: calculate_element
+ * --------------------
+ *  Calculates the score and predecessor for a single element at [i,j].
+ *
+ *  up: value at score[i-1,j]
+ *  diagonal: num of cols in matrix
+ *  left: starting row index of solution vector
+ *  score: will point to calculated score
+ *  pred: will ppoint to predecessor value (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ */
 void calculate_element(int up, int diagonal, int left, int * score, int * pred) {
   // Set score & predecessor for current subproblem
   if ((max(0,max(diagonal,max(up,left)))) == 0) {
@@ -55,6 +78,25 @@ void calculate_element(int up, int diagonal, int left, int * score, int * pred) 
   }
 }
 
+/*
+ * Function: forward
+ * --------------------
+ *  Forward algorithm to complete score matrix and predecessor matrix.
+ *
+ *  x: first string
+ *  y: second string
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  max_score_arr: array of max scores for each thread
+ *  max_row_arr: array of row indexes of max scores for each thread
+ *  max_col_arr: array of col indexes of max scores for each thread
+ *  block_size: num of stages each team will be responsible for
+ *  num_stages: num of stages in matrix
+ *  num_teams: num of teams
+ *  num_threads: num of threads in each team
+ */
 void forward(
   char* x,
   char* y,
@@ -127,6 +169,25 @@ void forward(
   }
 }
 
+/*
+ * Function: fixup
+ * --------------------
+ *  Fixup phase to correct score matrix and predecessor matrix from forward phase.
+ *
+ *  x: first string
+ *  y: second string
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  max_score_arr: array of max scores for each thread
+ *  max_row_arr: array of row indexes of max scores for each thread
+ *  max_col_arr: array of col indexes of max scores for each thread
+ *  block_size: num of stages each team will be responsible for
+ *  num_stages: num of stages in matrix
+ *  num_teams: num of teams
+ *  num_threads: num of threads in each team
+ */
 void fixup(
   char* x,
   char* y,
@@ -227,6 +288,20 @@ void fixup(
   } while (converged);
 }
 
+/*
+ * Function: backward
+ * --------------------
+ *  Traces back in pred matrix to get the best local alignment
+ *
+ *  x: first string
+ *  y: second string
+ *  m: num of rows in matrix
+ *  n: num of cols in matrix
+ *  score: score matrix
+ *  pred: predecessor matrix (0 = no pred, 1 = diagonal, 2 = left, 3 = up)
+ *  max_row: row index of max score
+ *  max_col: col index of max score
+ */
 void backward(
   char* x,
   char* y,
@@ -271,6 +346,14 @@ void backward(
   print_reverse(result_y_alignment,alignment_len);
 }
 
+/*
+ * Function: backward
+ * --------------------
+ *  Finds the best local alignment for x and y based on Smith-Waterman
+ *
+ *  x: first string
+ *  y: second string
+ */
 void smith_waterman(char* x, char* y) {
   int m = strlen(x) + 1;
   int n = strlen(y) + 1;
