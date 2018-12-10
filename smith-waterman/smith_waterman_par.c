@@ -5,8 +5,6 @@
 #include <time.h>
 #include "helpers.h"
 
-
-
 /* Scoring constants */
 int MATCH = 2;
 int MISMATCH = -1;
