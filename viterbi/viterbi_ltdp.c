@@ -254,7 +254,7 @@ int main() {
          "VITERBI LTDP PARALLEL ALGORITHM\n");
   printf("Computing the most probable state sequence from a sequence of observations.\n");
   printf("This program will generate the observation sequence and HMM based on the\n"
-          "dimensions you specify.");
+          "dimensions you specify.\n");
   printf("===========================================================\n");
   printf("Enter the size of the observation space: ");
   scanf("%d",&n);
