@@ -157,8 +157,6 @@ int main(int argc, const char* argv[]) {
   scanf("%d",&ref_len);
   printf("Enter the string size for the query string: ");
   scanf("%d",&query_len);
-  ref_len = 15;
-  query_len = 15;
   char* ref = generate_sequence(ref_len);
   char* query = generate_sequence(query_len);
   printf("Reference string: %s\nQuery string: %s\n",ref,query);
@@ -166,14 +164,10 @@ int main(int argc, const char* argv[]) {
   int pred[ref_len+1][query_len+1];
   int max_row;
   int max_col;
-  clock_t t;
-  t = clock();
   smith_waterman_forward(ref, query, ref_len, query_len, score, pred, &max_row, &max_col);
-  t = clock() - t;
   printf("===========================================================\n"
          "RESULTS\n"
          "===========================================================\n");
-  printf("Time taken for forward phase: %f seconds\n", (double)t/CLOCKS_PER_SEC);
   smith_waterman_backward(ref, query, ref_len, query_len, score, pred, &max_row, &max_col);
   return 0;
 }

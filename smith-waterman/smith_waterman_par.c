@@ -156,8 +156,6 @@ int main() {
       pred[i][j]=0;
     }
   }
-  clock_t t;
-  t = clock();
   for (i = 0; i < num_of_stages; i++) {
     num_of_elements_in_stage = get_num_of_elements_in_stage(i, m-1, n-1);
     if (i < m - 1){
@@ -174,11 +172,9 @@ int main() {
       smith_waterman_forward(ref, query, m, n, score, pred, curr_i, curr_j);
     }
   }
-  t = clock() - t;
   printf("===========================================================\n"
          "RESULTS\n"
          "===========================================================\n");
-  printf("Time taken for forward phase: %f seconds\n", (double)t/CLOCKS_PER_SEC);
   for (i=0; i<m; i++) {
     for (j=0; j<n; j++) {
       if (score[i][j] > max_score) {

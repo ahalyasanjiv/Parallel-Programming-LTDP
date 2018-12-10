@@ -12,16 +12,24 @@ You can find information on installing GCC [here](https://www3.ntu.edu.sg/home/e
 The GCC/G++ compilers can run programs with OpenMP directives as is.
 
 
+## Documentation
+All functions are documented in their respective files with descriptions on their
+purpose, their parameters, and what they return.
+I have commented within the functions as well to describe their implementations.
+
+
 ## Smith-Waterman
 Smith-Waterman computes the optimal local alignment for a reference string and
 query string. The programs will dynamically generate randomized DNA sequences
 to use as the reference and query based on the user input. The user provides
 the length for the reference and the length for the query (these values may be
 different).
+This is different from Needleman-Wunsch, which finds the global optimal alignment.
 
 ### Auxiliary File: smith_waterman_helpers.h
 This file contains helper functions that are shared amongst the three
 different implementations of Smith-Waterman.
+
 ### To Run
 First navigate to the smith-waterman directory.
 ```
@@ -60,11 +68,14 @@ gcc-8 -fopenmp smith_waterman_ltdp.c -o sw
 ./sw
 ```
 
+
 ## Viterbi
 The Viterbi algorithm is a dynamic programming algorithm that is used to derive
 the most probable sequence of hidden states from a sequence of observations. The
 statistical model of hidden states, observations, and the probability distributions
 that show how these states and observations are related is known as a Hidden Markov Model.
+NOTE: Increasing the size of the observation space and state space can greatly affect
+runtime for Viterbi.
 
 ### Data Generator: hmm_data_gen.h
 This file will be used in all three implementations to randomly generate the observation

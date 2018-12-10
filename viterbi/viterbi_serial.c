@@ -55,8 +55,6 @@ void viterbi(
   }
   // Forward algorithm
   // Outer loop is iterating through t time stages
-  clock_t time_taken;
-  time_taken = clock();
   for (int i=1; i<t; i++) {
     // First inner loop is iterating through possible states
     for (int j=0; j<k; j++) {
@@ -77,8 +75,6 @@ void viterbi(
       dp2[j][i] = arg_max;
     }
   }
-  time_taken = clock() - time_taken;
-  printf("Time: %f\n", (double)time_taken/CLOCKS_PER_SEC);
   // Get last state in path
   float max = dp1[0][t-1];
   int arg_max = 0;
