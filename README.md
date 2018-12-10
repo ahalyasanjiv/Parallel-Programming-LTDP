@@ -4,9 +4,8 @@ Parallel and serial implementations of Viterbi and Smith-Waterman using OpenMP
 
 
 ## Requirements
-The programs are all written in C.
 ### Compiler
-To compile these programs, I used GCC Version 8.
+The programs are all written in C. To compile these programs, I used GCC Version 8.
 You can find information on installing GCC [here](https://www3.ntu.edu.sg/home/ehchua/programming/cpp/gcc_make.html).
 ### OpenMP
 The GCC/G++ compilers can run programs with OpenMP directives as is.
