@@ -149,6 +149,9 @@ int main() {
     }
   }
   t = clock() - t;
+  printf("===========================================================\n"
+         "RESULTS\n"
+         "===========================================================\n");
   printf("Time taken for forward phase: %f seconds\n", (double)t/CLOCKS_PER_SEC);
   for (i=0; i<m; i++) {
     for (j=0; j<n; j++) {
