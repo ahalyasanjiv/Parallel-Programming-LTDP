@@ -68,7 +68,7 @@ void print_reverse(char* x, int x_len) {
 }
 
 /*
- * Function: print_reverse
+ * Function: print_matrix
  * --------------------
  *  Prints matrix
  *
