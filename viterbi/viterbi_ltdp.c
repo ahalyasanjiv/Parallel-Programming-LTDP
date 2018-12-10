@@ -9,21 +9,37 @@
 #include "viterbi_helpers.h"
 
 void viterbi(int n, int q, int t, int O[n], int S[q],float I[q], int Y[t], float A[q][q], float B[q][n]);
-void fixStage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][t], int Y[t], float A[q][q], float B[q][n]);
-void copyNewStageToOld(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]);
+void fix_stage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][t], int Y[t], float A[q][q], float B[q][n]);
+void copy_new_stage_to_old(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]);
 bool is_parallel(int q, int t, int comp_stage_idx, float s[q], float dp1[q][t]);
 
-/* Returns the most likely hidden state sequence corresponding to given observations Y */
+/*
+ * Function: viterbi
+ * --------------------
+ *  Computes the most likely hidden state sequence based on a sequence of observations using Viterbi Algorithm
+ *
+ *  n: number of possible observations
+ *  q: number of possible states
+ *  t: length of observed sequence
+ *  O: observation space
+ *  S: state space
+ *  I: prior probability - I[i] is the prior probability of S[i]
+ *  Y: sequence of observations - Y[t] = i if observation at time t is O[i]
+ *  A: transition probability - A[i,j] is the probability of going from state S[i] to S[j]
+ *  B: emission probability - B[i,j] is the probability of observing O[j] given state S[i]
+ *
+ *  returns: the most likely hidden state sequence corresponding to given observations Y
+ */
 void viterbi(
-  int n, // number of possible observations
-  int q, // number of possible states
-  int t, // length of observed sequence
-  int O[n], // observation space
-  int S[q], // state space
-  float I[q], // I[i] is the initial probability of S[i]
-  int Y[t], // sequence of observations - Y[t] = i if observation at time t is O[i]
-  float A[q][q], // A[i,j] is the transition probability of going from state S[i] to S[j]
-  float B[q][n] // B[i,j] is the probability of observing O[j] given state S[i]
+  int n,
+  int q,
+  int t,
+  int O[n],
+  int S[k],
+  float I[k],
+  int Y[t],
+  float A[k][k],
+  float B[k][n]
 ) {
   int p = 4;
   float dp1[q][t]; // dp1[i,j] is the prob of most likely path of length j ending in S[i] resulting in the obs sequence
@@ -42,7 +58,7 @@ void viterbi(
         dp2[i][0] = 0;
       }
       else {
-        dp1[i][j]=getRandFloat(min_prob,max_prob);
+        dp1[i][j]=get_rand_float(min_prob,max_prob);
         dp2[i][j]=0;
       }
     }
@@ -67,7 +83,6 @@ void viterbi(
     double t1, t2;
     t1 = omp_get_wtime();
     for (int j = lp; j <= rp; j++) {
-      // printf("i %d, j:%d %f\n", i, j, omp_get_wtime());
       for (int k = 0; k < q; k++) {
         float max = -INFINITY;
         int arg_max = -1;
@@ -124,7 +139,7 @@ void viterbi(
           conv[i] = true;
           break;
         }
-        copyNewStageToOld(q,t,j,s1,s2,dp1,dp2);
+        copy_new_stage_to_old(q,t,j,s1,s2,dp1,dp2);
       }
       bool local_conv = true;
     }
@@ -160,16 +175,41 @@ void viterbi(
 }
 
 /* Copy new stage to old */
-void copyNewStageToOld(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]) {
+void copy_new_stage_to_old(int q, int t, int stage_num, float s1[q], int s2[q], float dp1[q][t], int dp2[q][t]) {
   for (int i = 0; i < q; i++) {
     dp1[i][stage_num] = s1[i];
     dp2[i][stage_num] = s2[i];
   }
 }
 
-/* Calculates new array of values for fixup phase */
-void fixStage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][t], int Y[t], float A[q][q], float B[q][n]) {
-
+/*
+ * Function: fix_stage
+ * --------------------
+ *  Calculates new solution vector of values for fixup phase.
+ *
+ *  n: number of observations
+ *  lp: the stage index to be fixed
+ *  q: number of possible states
+ *  t: length of observed sequence
+ *  s1: new probability solution vector
+ *  s2: new predecessor solution vector
+ *  dp1: matrix containing probabilties calculated in forward phase
+ *  Y: sequence of observations - Y[t] = i if observation at time t is O[i]
+ *  A: transition probability - A[i,j] is the probability of going from state S[i] to S[j]
+ *  B: emission probability - B[i,j] is the probability of observing O[j] given state S[i]
+ */
+void fix_stage(
+  int n,
+  int lp,
+  int q,
+  int t,
+  float s1[q],
+  int s2[q],
+  float dp1[q][t],
+  int Y[t],
+  float A[q][q],
+  float B[q][n]
+) {
   for (int i = 0; i < q; i++) {
     float max = -INFINITY;
     int arg_max = -1;
@@ -188,7 +228,20 @@ void fixStage(int n, int lp, int q, int t, float s1[q], int s2[q], float dp1[q][
 }
 
 
-/* Checks if two stages are parallel */
+/*
+ * Function: is_parallel
+ * --------------------
+ *  Checks if a new solution vector is parallel to the corresponding column
+ *  vector in the dp solution matrix.
+ *
+ *  q: number of possible states
+ *  t: length of observed sequence
+ *  comp_stage_idx: index of stage being computed
+ *  s: new solution vector
+ *  dp: matrix containing old solution vector
+ *
+ *  returns: true if s and corresponding column in dp are parallel
+ */
 bool is_parallel(int q, int t, int comp_stage_idx, float s[q], float dp[q][t]) {
   for (int i = 1; i < q; i++) {
     if ((s[i-1]-dp[i-1][comp_stage_idx]) != (s[i]-dp[i][comp_stage_idx])) {
@@ -210,8 +263,8 @@ int main() {
   // float I[2] = {log(0.67), log(0.33)};
   // float A[2][2] = {{0.8,0.2},{0.4,0.6}};
   // float B[2][2] = {{0.8,0.2},{0.4,0.6}};
-  // convertToLogProb(2,2,A);
-  // convertToLogProb(2,2,B);
+  // convert_to_log_prob(2,2,A);
+  // convert_to_log_prob(2,2,B);
   // int Y[8] = {0,0,1,1,1,0,1,0};
   int n = 100;
   int q = 100;
@@ -222,9 +275,9 @@ int main() {
   float I[q];
   float A[q][q];
   float B[q][n];
-  convertArrayToLogProb(2,I);
-  convertToLogProb(2,2,A);
-  convertToLogProb(2,2,B);
+  convert_array_to_log_prob(2,I);
+  convert_to_log_prob(2,2,A);
+  convert_to_log_prob(2,2,B);
   generate_sequence(q,n,t,O,S,Y,I,A,B);
 
   // int O[n];
@@ -237,7 +290,7 @@ int main() {
   // for (int i = 0; i < q; i++) {
   //   float max_prob = 1.0;
   //   for (int j = 0; j < q; j++) {
-  //     A[i][j] = getRandFloat(0.0,max_prob);
+  //     A[i][j] = get_rand_float(0.0,max_prob);
   //     max_prob = max_prob - A[i][j];
   //   }
   // }
@@ -245,7 +298,7 @@ int main() {
   // for (int i = 0; i < q; i++) {
   //   float max_prob = 1.0;
   //   for (int j = 0; j < n; j++) {
-  //     B[i][j] = getRandFloat(0.0,max_prob);
+  //     B[i][j] = get_rand_float(0.0,max_prob);
   //     max_prob = max_prob - B[i][j];
   //   }
   // }

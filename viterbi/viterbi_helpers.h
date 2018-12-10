@@ -5,13 +5,13 @@
 #include <math.h>
 
 int max(int a, int b);
-float getRandFloat(float min, float max);
+float get_rand_float(float min, float max);
 void print_arr(int t, int X[t]);
 void print_fl_arr(int t, float X[t]);
 void print_fl_matrix(int m, int n, float A[m][n]);
 void print_matrix(int m, int n, int A[m][n]);
-void convertToLogProb(int m, int n, float matrix[m][n]);
-void convertArrayToLogProb(int n, float arr[n]);
+void convert_to_log_prob(int m, int n, float matrix[m][n]);
+void convert_array_to_log_prob(int n, float arr[n]);
 
 /*
  * Function: max
@@ -31,7 +31,7 @@ int max(int a, int b) {
 }
 
 /*
- * Function: getRandFloat
+ * Function: get_rand_float
  * --------------------
  *  Generates a random float in specified range.
  *
@@ -40,7 +40,7 @@ int max(int a, int b) {
  *
  *  returns: a random float between min and max
  */
-float getRandFloat(float min, float max) {
+float get_rand_float(float min, float max) {
     return  (max - min) * ((((float) rand()) / (float) RAND_MAX)) + min ;
 }
 
@@ -111,7 +111,7 @@ void print_matrix(int m, int n, int A[m][n]) {
 }
 
 /*
- * Function: convertToLogProb
+ * Function: convert_to_log_prob
  * --------------------
  *  Applies natural log to each element in a float matrix
  *
@@ -121,7 +121,7 @@ void print_matrix(int m, int n, int A[m][n]) {
  *
  *  returns: resulting matrix after applying natural log to each element of A
  */
-void convertToLogProb(int m, int n, float A[m][n]) {
+void convert_to_log_prob(int m, int n, float A[m][n]) {
   for (int i=0; i<m; i++) {
     for (int j=0; j<n; j++) {
       A[i][j] = (float)log(A[i][j]);
@@ -130,7 +130,7 @@ void convertToLogProb(int m, int n, float A[m][n]) {
 }
 
 /*
- * Function: convertArrayToLogProb
+ * Function: convert_array_to_log_prob
  * --------------------
  *  Applies natural log to each element in a float array
  *
@@ -139,7 +139,7 @@ void convertToLogProb(int m, int n, float A[m][n]) {
  *
  *  returns: resulting array after applying natural log to each element of X
  */
-void convertArrayToLogProb(int n, float X[n]) {
+void convert_array_to_log_prob(int n, float X[n]) {
   for (int i = 0; i < n; i++) {
     X[i] = (float)log(X[i]);
   }
