@@ -163,6 +163,5 @@ int main() {
     }
   }
   smith_waterman_backward(ref, query, m, n, score, pred, &max_row, &max_col);
-
   return 0;
 }
