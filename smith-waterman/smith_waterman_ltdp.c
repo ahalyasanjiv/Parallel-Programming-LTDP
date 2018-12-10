@@ -397,7 +397,7 @@ int main() {
   srand(time(NULL));
   int ref_len,query_len;
   printf("===========================================================\n"
-         "SMITH WATERMAN PARALLEL ALGORITHM\n");
+         "SMITH WATERMAN LTDP PARALLEL ALGORITHM\n");
   printf("Computing the local alignment for two random DNA sequences.\n");
   printf("===========================================================\n");
   printf("Enter the string size for the reference string: ");
