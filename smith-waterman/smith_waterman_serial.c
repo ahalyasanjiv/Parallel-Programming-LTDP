@@ -85,7 +85,6 @@ void smith_waterman_forward(
       }
     }
   }
-  print_matrix(x_len+1,y_len+1,score);
 }
 
 /*
