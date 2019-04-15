@@ -117,6 +117,8 @@ void convert_to_log_prob(int m, int n, float matrix[m][n]) {
 /* Convert to log probability */
 void convert_array_to_log_prob(int n, float arr[n]) {
   for (int i = 0; i < n; i++) {
+    printf("%f ", arr[i]);
+    printf("%f\n", (float)log(arr[i]));
     arr[i] = (float)log(arr[i]);
   }
 }

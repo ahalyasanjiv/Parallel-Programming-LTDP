@@ -6,9 +6,9 @@
 #include <math.h>
 #include <mpi.h>
 #include <omp.h>
-#include "hmm_data_gen.h"
-#include "viterbi_hybrid_helpers.h"
+#include "hmm_data_gen_hybrid.h"
 
+int world_rank, world_size;
 /*
  * Function: viterbi
  * --------------------
@@ -40,32 +40,28 @@ void viterbi(
   double start, end;
   float (*dp1)[q] = malloc(sizeof *dp1 * t); // dp1[i,j] is the prob of most likely path of length i ending in S[j] resulting in the obs sequence
   int (*dp2)[q] = malloc(sizeof *dp2 * t); // dp2[i,j] stores predecessor state of the most likely path of length i ending in S[j] resulting in the obs sequence
+  if (world_rank == 0) {
+    float min_prob = -1.000;
+    float max_prob = -0.001;
 
-  float min_prob = -1.000;
-  float max_prob = -0.001;
+    // Initialize dp matrices
 
-  // Initialize dp matrices
-  for (int i=0; i<t; i++) {
-    for (int j=0; j<q; j++) {
-      if (i == 0) {
-        int observation = Y[0];
-        dp1[0][j] = I[j]+B[j][observation]; // multiple init probability of state S[i] by the prob of observing init obs from state S[i]
-        dp2[0][j] = 0;
-      }
-      else {
-        dp1[i][j]=get_rand_float(min_prob,max_prob);
-        dp2[i][j]=0;
+    for (int i=0; i<t; i++) {
+      for (int j=0; j<q; j++) {
+        if (i == 0) {
+          int observation = Y[0];
+          dp1[0][j] = I[j]+B[j][observation]; // multiple init probability of state S[i] by the prob of observing init obs from state S[i]
+          dp2[0][j] = 0;
+        }
+        else {
+          dp1[i][j]=get_rand_float(min_prob,max_prob);
+          dp2[i][j]=0;
+        }
       }
     }
+
   }
 
-
-
-  MPI_Init(NULL, NULL);
-  // Create initial communicator
-  int world_rank, world_size;
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   int stages_left = t-1;
 
   // Make excessive processors are not used
@@ -92,6 +88,10 @@ void viterbi(
   }
   MPI_Comm_rank(comm, &world_rank);
   MPI_Comm_size(comm, &world_size);
+
+  MPI_Bcast(dp1, t*q, MPI_FLOAT, 0, comm);
+  MPI_Bcast(dp2, t*q, MPI_INT, 0, comm);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   MPI_Barrier(comm);
   int min_stages_per_node = (t-1) / world_size;
@@ -213,50 +213,74 @@ void viterbi(
     MPI_Send(&rp, 1, MPI_INT, 0, 0, comm);
     MPI_Send(dp2[lp], (rp-lp)*q, MPI_INT, 0, 0, comm);
   }
+
   terminate:
     MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
 }
 
 int main() {
-  /*
+
   int n,q,t;
-  printf("===========================================================\n"
-         "VITERBI LTDP HYBRID PARALLEL ALGORITHM\n");
-  printf("Computing the most probable state sequence from a sequence of observations.\n");
-  printf("This program will generate the observation sequence and HMM based on the\n"
-          "dimensions you specify.\n");
-  printf("===========================================================\n");
-  printf("Enter the size of the observation space: ");
-  scanf("%d",&n);
-  printf("Enter the size of the state space: ");
-  scanf("%d",&q);
-  printf("Enter the number of observations in the sequence: ");
-  scanf("%d",&t);
+
+  MPI_Init(NULL, NULL);
+  // Create initial communicator
+  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  if (world_rank == 0) {
+    printf("===========================================================\n"
+           "VITERBI LTDP HYBRID PARALLEL ALGORITHM\n");
+    printf("Computing the most probable state sequence from a sequence of observations.\n");
+    printf("This program will generate the observation sequence and HMM based on the\n"
+            "dimensions you specify.\n");
+
+    // printf("Enter the size of the observation space: ");
+    // scanf("%d",&n);
+    // printf("Enter the size of the state space: ");
+    // scanf("%d",&q);
+    // printf("Enter the number of observations in the sequence: ");
+    // scanf("%d",&t);
+    n = 2; q = 3; t = 8;
+  }
+
+  MPI_Bcast(&n,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(&q,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(&t,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   int O[n];
   int S[q];
   int Y[t];
   float I[q];
   float A[q][q];
   float B[q][n];
-  convert_array_to_log_prob(2,I);
-  convert_to_log_prob(2,2,A);
-  convert_to_log_prob(2,2,B);
-  generate_sequence(q,n,t,O,S,Y,I,A,B);
-  viterbi(n,q,t,O,S,I,Y,A,B);
-  */
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  int n = 2;
-  int q = 2;
-  int t = 8;
-  int O[] = {0,1};
-  int S[] = {0,1};
-  float I[2] = {log(0.67), log(0.33)};
-  float A[2][2] = {{0.8,0.2},{0.4,0.6}};
-  float B[2][2] = {{0.8,0.2},{0.4,0.6}};
-  convert_to_log_prob(2,2,A);
-  convert_to_log_prob(2,2,B);
-  int Y[8] = {0,0,1,1,1,0,1,0};
+  if (world_rank == 0) {
+    generate_sequence(q,n,t,O,S,Y,I,A,B);
+  }
+
+  MPI_Bcast(O,n,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(S,q,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(Y,t,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(I,q,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Bcast(A,q*q,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+
+  //
+  // viterbi(n,q,t,O,S,I,Y,A,B);
+  // int n = 2;
+  // int q = 2;
+  // int t = 8;
+  // int O[] = {0,1};
+  // int S[] = {0,1};
+  // float I[2] = {log(0.67), log(0.33)};
+  // float A[2][2] = {{0.8,0.2},{0.4,0.6}};
+  // float B[2][2] = {{0.8,0.2},{0.4,0.6}};
+  // convert_to_log_prob(2,2,A);
+  // convert_to_log_prob(2,2,B);
+  // int Y[8] = {0,0,1,1,1,0,1,0};
   viterbi(n,q,t,O,S,I,Y,A,B);
+  MPI_Finalize();
   return 0;
 }
