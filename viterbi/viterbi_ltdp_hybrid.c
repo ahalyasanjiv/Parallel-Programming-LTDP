@@ -7,19 +7,35 @@
 #include <mpi.h>
 #include <omp.h>
 #include "hmm_data_gen.h"
-#include "viterbi_helpers.h"
+#include "viterbi_hybrid_helpers.h"
 
-/* Returns the most likely hidden state sequence corresponding to given observations Y */
+/*
+ * Function: viterbi
+ * --------------------
+ *  Computes the most likely hidden state sequence based on a sequence of observations using Viterbi Algorithm
+ *
+ *  n: number of possible observations
+ *  q: number of possible states
+ *  t: length of observed sequence
+ *  O: observation space
+ *  S: state space
+ *  I: prior probability - I[i] is the prior probability of S[i]
+ *  Y: sequence of observations - Y[t] = i if observation at time t is O[i]
+ *  A: transition probability - A[i,j] is the probability of going from state S[i] to S[j]
+ *  B: emission probability - B[i,j] is the probability of observing O[j] given state S[i]
+ *
+ *  returns: the most likely hidden state sequence corresponding to given observations Y
+ */
 void viterbi(
-  int n, // number of possible observations
-  int q, // number of possible states
-  int t, // length of observed sequence
-  int O[n], // observation space
-  int S[q], // state space
-  float I[q], // I[i] is the initial probability of S[i]
-  int Y[t], // sequence of observations - Y[t] = i if observation at time t is O[i]
-  float A[q][q], // A[i,j] is the transition probability of going from state S[i] to S[j]
-  float B[q][n] // B[i,j] is the probability of observing O[j] given state S[i]
+  int n,
+  int q,
+  int t,
+  int O[n],
+  int S[q],
+  float I[q],
+  int Y[t],
+  float A[q][q],
+  float B[q][n]
 ) {
   double start, end;
   float (*dp1)[q] = malloc(sizeof *dp1 * t); // dp1[i,j] is the prob of most likely path of length i ending in S[j] resulting in the obs sequence
@@ -202,20 +218,34 @@ void viterbi(
     MPI_Finalize();
 }
 
-int main(int argc, char* argv[]) {
-  // int n = 6;
-  // int q = 6;
-  // int t = 6;
-  // int O[n];
-  // int S[q];
-  // int Y[t];
-  // float I[q];
-  // float A[q][q];
-  // float B[q][n];
-  // convert_array_to_log_prob(2,I);
-  // convert_to_log_prob(q,q,A);
-  // convert_to_log_prob(q,n,B
-  // generate_sequence(q,n,t,O,S,Y,I,A,B);
+int main() {
+  /*
+  int n,q,t;
+  printf("===========================================================\n"
+         "VITERBI LTDP HYBRID PARALLEL ALGORITHM\n");
+  printf("Computing the most probable state sequence from a sequence of observations.\n");
+  printf("This program will generate the observation sequence and HMM based on the\n"
+          "dimensions you specify.\n");
+  printf("===========================================================\n");
+  printf("Enter the size of the observation space: ");
+  scanf("%d",&n);
+  printf("Enter the size of the state space: ");
+  scanf("%d",&q);
+  printf("Enter the number of observations in the sequence: ");
+  scanf("%d",&t);
+  int O[n];
+  int S[q];
+  int Y[t];
+  float I[q];
+  float A[q][q];
+  float B[q][n];
+  convert_array_to_log_prob(2,I);
+  convert_to_log_prob(2,2,A);
+  convert_to_log_prob(2,2,B);
+  generate_sequence(q,n,t,O,S,Y,I,A,B);
+  viterbi(n,q,t,O,S,I,Y,A,B);
+  */
+
   int n = 2;
   int q = 2;
   int t = 8;
