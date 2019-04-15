@@ -233,13 +233,12 @@ int main() {
     printf("This program will generate the observation sequence and HMM based on the\n"
             "dimensions you specify.\n");
 
-    // printf("Enter the size of the observation space: ");
-    // scanf("%d",&n);
-    // printf("Enter the size of the state space: ");
-    // scanf("%d",&q);
-    // printf("Enter the number of observations in the sequence: ");
-    // scanf("%d",&t);
-    n = 2; q = 3; t = 8;
+    printf("Enter the size of the observation space: ");
+    scanf("%d",&n);
+    printf("Enter the size of the state space: ");
+    scanf("%d",&q);
+    printf("Enter the number of observations in the sequence: ");
+    scanf("%d",&t);
   }
 
   MPI_Bcast(&n,1,MPI_INT,0,MPI_COMM_WORLD);
