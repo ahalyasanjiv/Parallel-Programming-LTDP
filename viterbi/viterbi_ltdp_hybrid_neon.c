@@ -7,6 +7,7 @@
 #include <mpi.h>
 #include <omp.h>
 #include "hmm_data_gen_hybrid.h"
+//#include "arm_neon.h"
 
 int world_rank, world_size;
 /*
@@ -32,8 +33,8 @@ void viterbi(
   int t,
   int O[n],
   int S[q],
-  float I[q],
   int Y[t],
+  float I[q],
   float A[q][q],
   float B[q][n]
 ) {
@@ -233,10 +234,12 @@ int main() {
     printf("This program will generate the observation sequence and HMM based on the\n"
             "dimensions you specify.\n");
 
-    printf("Enter the size of the observation space: ");
-    scanf("%d",&n);
-    printf("Enter the size of the state space: ");
-    scanf("%d",&q);
+    // printf("Enter the size of the observation space: ");
+    // scanf("%d",&n);
+    // printf("Enter the size of the state space: ");
+    // scanf("%d",&q);
+    n = 5;
+    q = 5;
     printf("Enter the number of observations in the sequence: ");
     scanf("%d",&t);
   }
@@ -254,32 +257,29 @@ int main() {
   MPI_Barrier(MPI_COMM_WORLD);
 
   if (world_rank == 0) {
-    generate_sequence(q,n,t,O,S,Y,I,A,B);
+    generate_sequence(q,n,t,O,S,I,A,B);
   }
 
   MPI_Bcast(O,n,MPI_INT,0,MPI_COMM_WORLD);
   MPI_Bcast(S,q,MPI_INT,0,MPI_COMM_WORLD);
-  MPI_Bcast(Y,t,MPI_INT,0,MPI_COMM_WORLD);
+  // MPI_Bcast(Y,t,MPI_INT,0,MPI_COMM_WORLD);
   MPI_Bcast(I,q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(A,q*q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
+  FILE * fp;
+  fp = fopen ("generated_sequence.c","r");
+  fseek(fp, 0, SEEK_END);
+  int sz = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  if (world_rank == 0) {
+    printf("%d\n", sz);
+  }
+  fclose (fp);
   MPI_Barrier(MPI_COMM_WORLD);
 
+  //viterbi(n,q,t,O,S,I,A,B);
 
-  //
-  // viterbi(n,q,t,O,S,I,Y,A,B);
-  // int n = 2;
-  // int q = 2;
-  // int t = 8;
-  // int O[] = {0,1};
-  // int S[] = {0,1};
-  // float I[2] = {log(0.67), log(0.33)};
-  // float A[2][2] = {{0.8,0.2},{0.4,0.6}};
-  // float B[2][2] = {{0.8,0.2},{0.4,0.6}};
-  // convert_to_log_prob(2,2,A);
-  // convert_to_log_prob(2,2,B);
-  // int Y[8] = {0,0,1,1,1,0,1,0};
-  //viterbi(n,q,t,O,S,I,Y,A,B);
-  MPI_Finalize();
+  end:
+    MPI_Finalize();
   return 0;
 }

@@ -109,6 +109,7 @@ void print_matrix(int m, int n, int A[m][n]) {
 void convert_to_log_prob(int m, int n, float matrix[m][n]) {
   for (int i=0; i<m; i++) {
     for (int j=0; j<n; j++) {
+      printf("%f --> %f\n", matrix[i][j],(float)log(matrix[i][j]));
       matrix[i][j] = (float)log(matrix[i][j]);
     }
   }

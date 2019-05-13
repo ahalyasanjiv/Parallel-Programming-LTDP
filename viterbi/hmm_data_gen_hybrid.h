@@ -6,7 +6,7 @@
 
 void generate_array(int n, float M[n]);
 int get_element_idx(int n, float M[n], float prob);
-void generate_sequence(int num_hidden_states, int num_observations, int seq_len, int O[num_observations], int S[num_hidden_states], int Y[seq_len], float I[num_hidden_states], float A[num_hidden_states][num_hidden_states],float B[num_hidden_states][num_observations]);
+void generate_sequence(int num_hidden_states, int num_observations, int seq_len, int O[num_observations], int S[num_hidden_states], float I[num_hidden_states], float A[num_hidden_states][num_hidden_states],float B[num_hidden_states][num_observations]);
 
 #define ROUNDF(f, c) (((float)((int)((f) * (c))) / (c)))
 
@@ -63,7 +63,6 @@ void generate_sequence(
   int seq_len,
   int O[num_observations],
   int S[num_hidden_states],
-  int Y[seq_len],
   float I[num_hidden_states],
   float A[num_hidden_states][num_hidden_states],
   float B[num_hidden_states][num_observations]
@@ -85,23 +84,23 @@ void generate_sequence(
     S[i] = i;
   }
   // Initiate the initial element of I_sum_array
-  I_sum_array[0] = I[0];
+  I_sum_array[0] = exp(I[0]);
   // Initiate the initial column of A_sum_array and B_sum_matrix
   for (int i = 0; i < num_hidden_states; i++) {
-    A_sum_matrix[i][0] = A[i][0];
-    B_sum_matrix[i][0] = B[i][0];
+    A_sum_matrix[i][0] = exp(A[i][0]);
+    B_sum_matrix[i][0] = exp(B[i][0]);
   }
   // Generate rest of elements in I_sum_array, A_sum_matrix, and B_sum_matrix
   for (int i = 1; i < num_hidden_states; i++) {
-    I_sum_array[i] = I_sum_array[i-1] + I[i];
+    I_sum_array[i] = I_sum_array[i-1] + exp(I[i]);
   }
 
   for (int i = 0; i < num_hidden_states; i++) {
     for (int j = 1; j < num_hidden_states; j++) {
-      A_sum_matrix[i][j] = A_sum_matrix[i][j-1] + A[i][j];
+      A_sum_matrix[i][j] = A_sum_matrix[i][j-1] + exp(A[i][j]);
     }
     for (int j = 1; j < num_observations; j++) {
-      B_sum_matrix[i][j] = B_sum_matrix[i][j-1] + B[i][j];
+      B_sum_matrix[i][j] = B_sum_matrix[i][j-1] + exp(B[i][j]);
     }
   }
 
@@ -114,23 +113,26 @@ void generate_sequence(
   for (int i = 1; i < seq_len; i++) {
     prev_state = states_seq[i-1];
     rand_prob = ROUNDF(min_prob + (float)rand()/RAND_MAX * (max_prob - min_prob),1000000);
-    states_seq[i] = get_element_idx(num_hidden_states,A[prev_state],rand_prob);
+    states_seq[i] = get_element_idx(num_hidden_states,A_sum_matrix[prev_state],rand_prob);
   }
 
   // Generate observation sequence Y
   int observation_idx;
   int state_idx;
+  FILE * fp;
+  int i;
+
+  /* open the file for writing*/
+  fp = fopen ("generated_sequence.c","w");
   for (int i = 0; i < seq_len; i++) {
     state_idx = states_seq[i];
     rand_prob = ROUNDF(min_prob + (float)rand()/RAND_MAX * (max_prob - min_prob),1000000);
-    observation_idx =
-    Y[i] = get_element_idx(num_hidden_states,B[state_idx],rand_prob);
+    fprintf (fp, "%d", get_element_idx(num_observations,B_sum_matrix[state_idx],rand_prob));
   }
 
-  // Convert probabilties to log probabilities
-  // convert_array_to_log_prob(num_hidden_states,I);
-  // convert_to_log_prob(num_hidden_states,num_hidden_states,A);
-  // convert_to_log_prob(num_hidden_states,num_observations,B);
+
+   /* close the file*/
+   fclose (fp);
   // for (int i = 0; i < num_hidden_states; i++) {
   //   printf("%d \n", S[i]);
   // }
@@ -164,8 +166,9 @@ void generate_sequence(
   // fputs("\n", fPtr);
   // for (int i = 0; i < num_hidden_states; i++) {
   //   for (int j = 0; j < num_observations; j++) {
-  //     fputs(B[i][j], fPtr);
+  //     printf("%f",B[i][j]);
   //   }
+  //   printf("\n");
   // }
   // fclose(fPtr);
 }
