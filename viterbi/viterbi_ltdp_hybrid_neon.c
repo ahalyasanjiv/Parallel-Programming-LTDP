@@ -250,7 +250,6 @@ int main() {
   MPI_Barrier(MPI_COMM_WORLD);
   int O[n];
   int S[q];
-  int Y[t];
   float I[q];
   float A[q][q];
   float B[q][n];
@@ -272,7 +271,7 @@ int main() {
   int end = start + (t/world_size);
   if (start >= t) {
     fclose (fp);
-    goto end;
+    goto global_termination;
   }
 
   if (end > t) {
@@ -296,7 +295,7 @@ int main() {
 
   //viterbi(n,q,t,O,S,I,A,B);
 
-  end:
+  global_termination:
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
   return 0;
