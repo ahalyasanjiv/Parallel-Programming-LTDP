@@ -269,6 +269,8 @@ int main() {
   fp = fopen ("generated_sequence.c","r");
   int start = (t/world_size) * world_rank;
   int end = start + (t/world_size);
+  printf("rank %d: %d-%d\n", world_rank, start,end );
+
   if (start >= t) {
     fclose (fp);
   } else {
@@ -282,9 +284,9 @@ int main() {
 
     fseek(fp, start, SEEK_SET);
     printf("rank %d: ", world_rank);
-    while (!feof (fp) && i < end) {
-      fscanf(fp, "%d", &Y[i]);
-      printf("%d", Y[i]);
+    while (!feof (fp) && (i+start) < end) {
+      fscanf(fp, "%1d", &Y[i]);
+      printf("%d ", Y[i]);
       i++;
     }
     printf("\n");
@@ -297,6 +299,6 @@ int main() {
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
-  
+
   return 0;
 }

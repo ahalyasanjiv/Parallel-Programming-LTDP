@@ -35,23 +35,27 @@ void print_uint8 (uint8x16_t data, char* name) {
     printf ("\n");
 }
 
+int8x16_t gen_query_profile ()
+
 int main () {
-    /* Create custom arbitrary data. */
-    const uint8_t uint8_data[] = { 1, 2, 3, 4, 5, 6, 7, 8,
-				   9, 10, 11, 12, 13, 14, 15, 16 };
+    // /* Create custom arbitrary data. */
+    // const uint8_t uint8_data[] = { 1, 2, 3, 4, 5, 6, 7, 8,
+		// 		   9, 10, 11, 12, 13, 14, 15, 16 };
+    //
+    // /* Create the vector with our data. */
+    // uint8x16_t data;
+    //
+    // /* Load our custom data into the vector register. */
+    // data = vld1q_u8 (uint8_data);
+    //
+    // print_uint8 (data, "data");
+    //
+    // /* Call of the add3 function. */
+    // add3(&data);
+    //
+    // print_uint8 (data, "data (new)");
 
-    /* Create the vector with our data. */
-    uint8x16_t data;
-
-    /* Load our custom data into the vector register. */
-    data = vld1q_u8 (uint8_data);
-
-    print_uint8 (data, "data");
-
-    /* Call of the add3 function. */
-    add3(&data);
-
-    print_uint8 (data, "data (new)");
+    float32x4_t
 
     return 0;
 }
