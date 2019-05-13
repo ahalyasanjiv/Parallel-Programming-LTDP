@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 
     // Generate a new reference sequence
     query = generate_query_sequence(query_len);
-    printf("Query string: %s\n",query);
+    // printf("Query string: %s\n",query);
   } else {
     ref = malloc(ref_seq_len);
     query = malloc(query_len);
@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
   // Report the best local alignment
   if (world_rank == 0) {
     printf("Max Score: %d\n", global_max.score);
-    printf("Sequence: %d\n", global_max.seq);
+    // printf("Sequence: %d\n", global_max.seq);
   }
 
   terminate:
