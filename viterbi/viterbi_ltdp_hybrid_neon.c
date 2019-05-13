@@ -283,7 +283,6 @@ int main() {
     int Y[buffer_size];
 
     fseek(fp, start, SEEK_SET);
-    printf("rank %d: ", world_rank);
     while (!feof (fp) && (i+start) < end) {
       fscanf(fp, "%1d", &Y[i]);
       printf("%d ", Y[i]);
