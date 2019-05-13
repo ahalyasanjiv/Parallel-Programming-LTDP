@@ -271,9 +271,7 @@ int main() {
   int end = start + (t/world_size);
   printf("rank %d: %d-%d\n", world_rank, start,end );
 
-  if (start >= t) {
-    fclose (fp);
-  } else {
+  if (start < t) {
     if (end > t) {
       end = t;
     }
@@ -290,11 +288,9 @@ int main() {
     }
     printf("\n");
 
-    fclose (fp);
-
     //viterbi(n,q,t,O,S,I,A,B);
   }
-
+  fclose(fp);
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
