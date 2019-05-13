@@ -271,32 +271,32 @@ int main() {
   int end = start + (t/world_size);
   if (start >= t) {
     fclose (fp);
-    goto global_termination;
+  } else {
+    if (end > t) {
+      end = t;
+    }
+
+    int i = 0;
+    int buffer_size = end - start;
+    int Y[buffer_size];
+
+    fseek(fp, start, SEEK_SET);
+    printf("rank %d: ", world_rank);
+    while (!feof (fp) && i < end) {
+      fscanf(fp, "%d", &Y[i]);
+      printf("%d", Y[i]);
+      i++;
+    }
+    printf("\n");
+
+    fclose (fp);
+
+    //viterbi(n,q,t,O,S,I,A,B);
   }
 
-  if (end > t) {
-    end = t;
-  }
 
-  int i = 0;
-  int buffer_size = end - start;
-  int Y[buffer_size];
-
-  fseek(fp, start, SEEK_SET);
-  printf("rank %d: ", world_rank);
-  while (!feof (fp) && i < end) {
-    fscanf(fp, "%d", &Y[i]);
-    printf("%d", Y[i]);
-    i++;
-  }
-  printf("\n");
-
-  fclose (fp);
-
-  //viterbi(n,q,t,O,S,I,A,B);
-
-  global_termination:
-    MPI_Barrier(MPI_COMM_WORLD);
-    MPI_Finalize();
+  MPI_Barrier(MPI_COMM_WORLD);
+  MPI_Finalize();
+  
   return 0;
 }
