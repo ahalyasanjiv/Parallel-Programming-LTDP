@@ -265,8 +265,6 @@ int main() {
   MPI_Bcast(I,q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(A,q*q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
-  FILE * fp;
-  fp = fopen ("generated_sequence.c","r");
   int start = (t/world_size) * world_rank;
   int end = start + (t/world_size);
   printf("rank %d: %d-%d\n", world_rank, start,end );
@@ -279,7 +277,8 @@ int main() {
     int i = 0;
     int buffer_size = end - start;
     int Y[buffer_size];
-
+    FILE * fp;
+    fp = fopen ("generated_sequence.c","r");
     fseek(fp, start, SEEK_SET);
     while (!feof (fp) && (i+start) < end) {
       fscanf(fp, "%1d", &Y[i]);
@@ -287,10 +286,10 @@ int main() {
       i++;
     }
     printf("\n");
+    fclose(fp);
 
     //viterbi(n,q,t,O,S,I,A,B);
   }
-  fclose(fp);
 
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
