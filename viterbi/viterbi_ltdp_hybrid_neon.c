@@ -265,10 +265,16 @@ int main() {
   MPI_Bcast(I,q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(A,q*q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
   int start = (t/world_size) * world_rank;
   int end = start + (t/world_size);
   printf("rank %d: %d-%d\n", world_rank, start,end );
-
+  // MPI_Status status;
+  // MPI_File file_handle;
+  // int file_error = MPI_File_open( MPI_COMM_WORLD, "generated_sequence.c", MPI_MODE_RDONLY, MPI_INFO_NULL, &file_handle);
+  // if (file_error != MPI_SUCCESS) {
+  //   printf("ERROR %d\n", file_error);
+  // }
   if (start < t) {
     if (end > t) {
       end = t;
@@ -277,18 +283,22 @@ int main() {
     int i = 0;
     int buffer_size = end - start;
     int Y[buffer_size];
-    FILE * fp;
-    fp = fopen ("generated_sequence.c","r");
+
+    char filename[] = "generated_sequence.c";
+
+    FILE * fp = fopen(filename, "r");
     fseek(fp, start, SEEK_SET);
     while (!feof (fp) && (i+start) < end) {
       fscanf(fp, "%1d", &Y[i]);
-      printf("%d ", Y[i]);
       i++;
     }
-    printf("\n");
-    fclose(fp);
 
-    //viterbi(n,q,t,O,S,I,A,B);
+    // viterbi(n,q,t,O,S,I,A,B);
+    printf("rank %d: \n", world_rank);
+    for (int i = 0; i < buffer_size; i++) {
+      printf("%d ", Y[i]);
+    }
+    printf("\n");
   }
 
   MPI_Barrier(MPI_COMM_WORLD);
