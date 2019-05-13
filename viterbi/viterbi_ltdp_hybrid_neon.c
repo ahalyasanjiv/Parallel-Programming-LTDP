@@ -240,7 +240,7 @@ int main() {
     // scanf("%d",&q);
     n = 5;
     q = 5;
-    printf("Enter the number of observations in the sequence: ");
+    printf("Enter the number of observations in each sequence: ");
     scanf("%d",&t);
   }
 
@@ -268,18 +268,36 @@ int main() {
   MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
   FILE * fp;
   fp = fopen ("generated_sequence.c","r");
-  fseek(fp, 0, SEEK_END);
-  int sz = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  if (world_rank == 0) {
-    printf("%d\n", sz);
+  int start = (t/world_size) * world_rank;
+  int end = start + (t/world_size);
+  if (start >= t) {
+    fclose (fp);
+    goto end;
   }
+
+  if (end > t) {
+    end = t;
+  }
+
+  int i = 0;
+  int buffer_size = end - start;
+  int Y[buffer_size];
+
+  fseek(fp, start, SEEK_SET);
+  printf("rank %d: ", world_rank);
+  while (!feof (fp) && i < end) {
+    fscanf(fp, "%d", &Y[i]);
+    printf("%d", Y[i]);
+    i++;
+  }
+  printf("\n");
+
   fclose (fp);
-  MPI_Barrier(MPI_COMM_WORLD);
 
   //viterbi(n,q,t,O,S,I,A,B);
 
   end:
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
   return 0;
 }
