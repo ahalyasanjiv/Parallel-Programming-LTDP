@@ -266,44 +266,61 @@ int main() {
   MPI_Bcast(A,q*q,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Bcast(B,q*n,MPI_FLOAT,0,MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
-  int start = (t/world_size) * world_rank;
-  int end = start + (t/world_size);
-  printf("rank %d: %d-%d\n", world_rank, start,end );
   // MPI_Status status;
   // MPI_File file_handle;
   // int file_error = MPI_File_open( MPI_COMM_WORLD, "generated_sequence.c", MPI_MODE_RDONLY, MPI_INFO_NULL, &file_handle);
   // if (file_error != MPI_SUCCESS) {
   //   printf("ERROR %d\n", file_error);
   // }
-  for( int i = 0; i < world_size; ++i ) {
+  for( int i = 1; i < world_size; ++i ) {
     MPI_Barrier( MPI_COMM_WORLD );
-    if ( i == world_rank ) {
+    if ( world_rank == 0 || i == world_rank ) {
+      int start = (t/world_size) * i;
+      int end = start + (t/world_size);
       if (start < t) {
         if (end > t) {
           end = t;
         }
-
-        int i = 0;
         int buffer_size = end - start;
-        int Y[buffer_size];
-
-        char filename[] = "generated_sequence.c";
-
-        FILE * fp = fopen(filename, "r");
-        fseek(fp, start, SEEK_SET);
-        while (!feof (fp) && (i+start) < end) {
-          fscanf(fp, "%1d", &Y[i]);
-          i++;
+        int buf[buffer_size];
+        if (world_rank == 0) {
+          char filename[] = "generated_sequence.c";
+          FILE * fp = fopen(filename, "r");
+          fseek(fp, start, SEEK_SET);
+          int count = 0;
+          while (!feof (fp) && (count+start) < end) {
+            fscanf(fp, "%1d", &buf[count]);
+            count++;
+          }
+          fclose(fp);
+          // viterbi(n,q,t,O,S,I,A,B);
+          MPI_Send(buf, buffer_size, MPI_INT, i, 0, MPI_COMM_WORLD);
+        } else {
+          MPI_Recv(buf, buffer_size, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          for (int j = 0; j < buffer_size; j++) {
+            printf("%d ", buf[j]);
+          }
         }
 
-        // viterbi(n,q,t,O,S,I,A,B);
-        printf("rank %d: \n", world_rank);
-        for (int i = 0; i < buffer_size; i++) {
-          printf("%d ", Y[i]);
-        }
-        printf("\n");
       }
     }
+  }
+  if (world_rank == 0) {
+    int end = (t/world_size);
+    char filename[] = "generated_sequence.c";
+    int buf[end];
+    FILE * fp = fopen(filename, "r");
+    fseek(fp, 0, SEEK_SET);
+    int count = 0;
+    while (!feof (fp) && count < end) {
+      fscanf(fp, "%1d", &buf[count]);
+      count++;
+    }
+    for (int j = 0; j < end; j++) {
+      printf("%d ", buf[j]);
+    }
+    fclose(fp);
+    // viterbi(n,q,t,O,S,I,A,B);
   }
 
 
